@@ -4,18 +4,18 @@ class Task {
         this.description = description;
         this.completed = completed;
     }
-
+//acá se cambia el estado de si esta completado o no
     toggleComplete() {
         this.completed = !this.completed;
     }
 }
-
+//este es la clase que nos predetermina los atributos y metodos que van a tener las instancias de TaskManager
 class TaskManager {
     constructor() {
         this.tasks = JSON.parse(localStorage.getItem('tasks')) || [];
-        this.loadTasks();
+        this.renderTasks();
     }
-
+//aca creamos las instancias de los task y se los añadimos en la ultima posicion de array tasks
     addTask(description) {
         const id = this.tasks.length ? this.tasks[this.tasks.length - 1].id + 1 : 1;
         const task = new Task(id, description);
@@ -23,28 +23,31 @@ class TaskManager {
         this.saveTasks();
         this.renderTasks();
     }
-
+//en este metodo recibimos el id y filtramos el array con los datos que su id no coincida con el id indicado
     deleteTask(id) {
         this.tasks = this.tasks.filter(task => task.id !== id);
         this.saveTasks();
         this.renderTasks();
     }
-
+//con este methodo lo que hacemos es crear una instancia con la informacion guardada de la instancia anterior en el local para poder acceder al metodo toggle, apenas podemos acceder y cambiar su estado, recorremos el array y reemplazamos la instancia en el arreglo y lo volvemos a subir
     toggleTaskComplete(id) {
         const task = this.tasks.find(task => task.id === id);
         if (task) {
-            task.toggleComplete();
+            const newTask = new Task(task.id, task.description, task.completed)
+            newTask.toggleComplete();
+            this.tasks = this.tasks.map((task) =>  { return task.id === id ? newTask: task} )
             this.saveTasks();
             this.renderTasks();
         }
     }
-
+//Acá llevamos la info a los input para reciclar los elementos y editarlo.
     showEditTask(id) {
         const task = this.tasks.find(task => task.id === id);
         document.getElementById('new-task').value = task.description;
         localStorage.setItem('editing', task.id)
     }
 
+//aca cargamos la informacion editada en el local y lo guardamos
     setEditedTask(editId) {
         const task = this.tasks.find(task => task.id === editId);
         task.id = editId;
@@ -54,14 +57,15 @@ class TaskManager {
         this.renderTasks()
     }
 
+//llevamos la info al local
     saveTasks() {
         localStorage.setItem('tasks', JSON.stringify(this.tasks));
     }
-
+//tercero para renderizar los tasks
     loadTasks() {
         this.renderTasks();
     }
-
+//renderizamos los tasks con sus butones de edit y eliminar
     renderTasks() {
         const taskList = document.getElementById('task-list');
         taskList.innerHTML = '';
@@ -94,7 +98,7 @@ class TaskManager {
         });
     }
 }
-
+//event para cargar los elementos una vez se haya cargado todos los elementos del dom
 document.addEventListener('DOMContentLoaded', () => {
     const taskManager = new TaskManager();
 
